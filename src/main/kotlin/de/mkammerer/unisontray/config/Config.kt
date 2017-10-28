@@ -42,18 +42,26 @@ class ConfigManagerImpl : ConfigManager {
     override fun load(): Config {
         if (!Files.exists(configPath)) return Config.DEFAULT
 
-        return Files.newInputStream(configPath).use { it -> mapper.readValue(it, Config::class.java) }
+        return Files.newInputStream(configPath).use { it -> mapper.readValue(it, ConfigDtoV1::class.java) }.toConfig()
     }
 
     override fun save(config: Config) {
         Files.createDirectories(configPath.parent)
 
         Files.newOutputStream(configPath).use {
-            mapper.writeValue(it, config)
+            mapper.writeValue(it, ConfigDtoV1.fromConfig(config))
         }
     }
 
     companion object {
         const val CONFIG_LOCATION = "<HOME>/.unison-tray.config"
+    }
+
+    data class ConfigDtoV1(val version: Int, val syncInterval: Int, val profile: String) {
+        fun toConfig(): Config = Config(syncInterval, profile)
+
+        companion object {
+            fun fromConfig(config: Config): ConfigDtoV1 = ConfigDtoV1(1, config.syncInterval, config.profile)
+        }
     }
 }
