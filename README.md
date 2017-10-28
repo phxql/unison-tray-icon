@@ -9,7 +9,7 @@ A tray icon for the unison file synchronizer.
 
 ## Configuration reference
 
-```json
+```plain
 {
   "syncInterval" : 300, // Interval in seconds between syncs
   "profile" : "moe"     // Name of the unison profile to use 
