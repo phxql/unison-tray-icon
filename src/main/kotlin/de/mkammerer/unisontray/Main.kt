@@ -43,6 +43,7 @@ object Main {
 
         logger.info("Initializing tray icon")
         tray.init(this::onQuit, { sync(unison, config, tray) })
+        tray.idle()
 
         val executorService = Executors.newSingleThreadScheduledExecutor()
 
