@@ -4,7 +4,6 @@ import dorkbox.systemTray.MenuItem
 import dorkbox.systemTray.Separator
 import dorkbox.systemTray.SystemTray
 import java.awt.Image
-import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -31,9 +30,10 @@ interface Tray {
     fun close()
 }
 
-class TrayImpl : Tray {
+class TrayImpl(
+        private val scheduler: ScheduledExecutorService
+) : Tray {
     private lateinit var systemTray: SystemTray
-    private lateinit var scheduler: ScheduledExecutorService
 
     private var refreshJob: ScheduledFuture<*>? = null
     private val currentRefreshImage = AtomicInteger(0)
@@ -50,8 +50,6 @@ class TrayImpl : Tray {
         systemTray.menu.add(MenuItem("Sync now", { onSyncNow() }).apply { shortcut = 'S' })
         systemTray.menu.add(Separator())
         systemTray.menu.add(MenuItem("Quit", { onQuit() }).apply { shortcut = 'Q' })
-
-        scheduler = Executors.newSingleThreadScheduledExecutor()
     }
 
     override fun idle() {
@@ -81,10 +79,7 @@ class TrayImpl : Tray {
     }
 
     override fun close() {
-        scheduler.shutdown()
-        scheduler.awaitTermination(5, TimeUnit.SECONDS)
-        scheduler.shutdownNow()
-
+        stopRefresh()
         systemTray.shutdown()
     }
 

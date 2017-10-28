@@ -32,7 +32,9 @@ object Main {
     }
 
     private fun run() {
-        val tray: Tray = TrayImpl()
+        val executorService = Executors.newSingleThreadScheduledExecutor()
+
+        val tray: Tray = TrayImpl(executorService)
         val unison: Unison = UnisonImpl()
         val configManager: ConfigManager = ConfigManagerImpl()
 
@@ -45,20 +47,16 @@ object Main {
         tray.init(this::onQuit, { sync(unison, config, tray) })
         tray.idle()
 
-        val executorService = Executors.newSingleThreadScheduledExecutor()
-
         logger.info("Installing shutdown hook")
-        Runtime.getRuntime().addShutdownHook(object : Thread("tray-shutdown") {
-            override fun run() {
-                logger.info("Stopping")
-                executorService.shutdown()
-                executorService.awaitTermination(10, TimeUnit.SECONDS)
-                executorService.shutdownNow()
+        Runtime.getRuntime().addShutdownHook(Thread({
+            logger.info("Stopping")
+            executorService.shutdown()
+            executorService.awaitTermination(10, TimeUnit.SECONDS)
+            executorService.shutdownNow()
 
-                tray.close()
-                logger.info("Stopped")
-            }
-        })
+            tray.close()
+            logger.info("Stopped")
+        }, "tray-shutdown"))
 
         logger.info("Schedulung periodic sync task")
         executorService.scheduleWithFixedDelay({
