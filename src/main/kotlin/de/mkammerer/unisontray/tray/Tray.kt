@@ -43,10 +43,12 @@ class TrayImpl : Tray {
 
     override fun idle() {
         systemTray.setImage(idleImage)
+        systemTray.setTooltip("Unison - idle")
     }
 
     override fun startRefresh() {
         if (refreshJob == null) {
+            systemTray.setTooltip("Unison - syncing")
             refreshJob = scheduler.scheduleAtFixedRate({
                 val image = refreshImages[nextImageNumber() - 1]
                 systemTray.setImage(image)
@@ -71,6 +73,7 @@ class TrayImpl : Tray {
     }
 
     override fun error() {
+        systemTray.setTooltip("Unison - error")
         systemTray.setImage(errorImage)
     }
 
