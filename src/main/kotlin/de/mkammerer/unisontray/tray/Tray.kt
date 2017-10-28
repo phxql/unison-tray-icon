@@ -9,7 +9,10 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import javax.imageio.ImageIO
+import kotlin.concurrent.withLock
 
 typealias OnQuitHandler = () -> Unit
 typealias OnSyncNowHandler = () -> Unit
@@ -40,6 +43,7 @@ class TrayImpl : Tray {
     private val refreshImages = Array(REFRESH_IMAGE_MAX - REFRESH_IMAGE_MIN + 1, { num ->
         loadImage(String.format(REFRESH_IMAGES, num + REFRESH_IMAGE_MIN))
     })
+    private val trayLock: Lock = ReentrantLock()
 
     override fun init(onQuit: OnQuitHandler, onSyncNow: OnSyncNowHandler) {
         systemTray = SystemTray.get() ?: throw IllegalStateException("Unable to initialize tray icon")
@@ -51,28 +55,18 @@ class TrayImpl : Tray {
     }
 
     override fun idle() {
-        systemTray.setImage(idleImage)
-        systemTray.setTooltip("Unison - idle")
+        setTrayImage(idleImage)
+        setTrayTooltip("Unison - idle")
     }
 
     override fun startRefresh() {
         if (refreshJob == null) {
-            systemTray.setTooltip("Unison - syncing")
+            setTrayTooltip("Unison - syncing")
             refreshJob = scheduler.scheduleAtFixedRate({
                 val image = refreshImages[nextImageNumber() - 1]
-                systemTray.setImage(image)
+                setTrayImage(image)
             }, 0, REFRESH_ROTATE_DELAY_MS, TimeUnit.MILLISECONDS)
         }
-    }
-
-    private fun nextImageNumber(): Int {
-        val image = currentRefreshImage.incrementAndGet()
-        if (image > REFRESH_IMAGE_MAX) {
-            currentRefreshImage.set(REFRESH_IMAGE_MIN)
-            return REFRESH_IMAGE_MIN
-        }
-
-        return image
     }
 
     override fun stopRefresh() {
@@ -82,8 +76,8 @@ class TrayImpl : Tray {
     }
 
     override fun error() {
-        systemTray.setTooltip("Unison - error")
-        systemTray.setImage(errorImage)
+        setTrayTooltip("Unison - error")
+        setTrayImage(errorImage)
     }
 
     override fun close() {
@@ -95,6 +89,28 @@ class TrayImpl : Tray {
     }
 
     private fun loadImage(resource: String): Image = javaClass.getResourceAsStream(resource).use { ImageIO.read(it) }
+
+    private fun nextImageNumber(): Int {
+        val image = currentRefreshImage.incrementAndGet()
+        if (image > REFRESH_IMAGE_MAX) {
+            currentRefreshImage.set(REFRESH_IMAGE_MIN)
+            return REFRESH_IMAGE_MIN
+        }
+
+        return image
+    }
+
+    private fun setTrayTooltip(tooltip: String) {
+        trayLock.withLock {
+            systemTray.setTooltip(tooltip)
+        }
+    }
+
+    private fun setTrayImage(image: Image) {
+        trayLock.withLock {
+            systemTray.setImage(image)
+        }
+    }
 
     companion object {
         const val IDLE_IMAGE = "/image/idle.png"
