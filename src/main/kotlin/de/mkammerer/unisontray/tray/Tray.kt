@@ -1,5 +1,7 @@
 package de.mkammerer.unisontray.tray
 
+import dorkbox.systemTray.MenuItem
+import dorkbox.systemTray.Separator
 import dorkbox.systemTray.SystemTray
 import java.awt.Image
 import java.util.concurrent.Executors
@@ -9,8 +11,11 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
 
+typealias OnQuitHandler = () -> Unit
+typealias OnSyncNowHandler = () -> Unit
+
 interface Tray {
-    fun init()
+    fun init(onQuit: OnQuitHandler, onSyncNow: OnSyncNowHandler)
 
     fun idle()
 
@@ -36,8 +41,12 @@ class TrayImpl : Tray {
         loadImage(String.format(REFRESH_IMAGES, num + REFRESH_IMAGE_MIN))
     })
 
-    override fun init() {
-        systemTray = SystemTray.get()
+    override fun init(onQuit: OnQuitHandler, onSyncNow: OnSyncNowHandler) {
+        systemTray = SystemTray.get() ?: throw IllegalStateException("Unable to initialize tray icon")
+        systemTray.menu.add(MenuItem("Sync now", { onSyncNow() }).apply { shortcut = 'S' })
+        systemTray.menu.add(Separator())
+        systemTray.menu.add(MenuItem("Quit", { onQuit() }).apply { shortcut = 'Q' })
+
         scheduler = Executors.newSingleThreadScheduledExecutor()
     }
 

@@ -12,6 +12,7 @@ import de.mkammerer.unisontray.unison.UnisonImpl
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 fun main(args: Array<String>) {
     Main.start(args)
@@ -19,6 +20,7 @@ fun main(args: Array<String>) {
 
 object Main {
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val syncInProgress = AtomicBoolean(false)
 
     fun start(args: Array<String>) {
         logger.info("Started")
@@ -39,7 +41,7 @@ object Main {
         configManager.save(config)
 
         logger.info("Initializing tray icon")
-        tray.init()
+        tray.init(this::onQuit, { sync(unison, config, tray) })
 
         val executorService = Executors.newSingleThreadScheduledExecutor()
 
@@ -58,30 +60,41 @@ object Main {
 
         logger.info("Schedulung periodic sync task")
         executorService.scheduleWithFixedDelay({
-            try {
-                sync(unison, config, tray)
-            } catch (e: Exception) {
-                logger.error("Exception in sync task", e)
-            }
+            sync(unison, config, tray)
         }, 0, config.syncInterval.toLong(), TimeUnit.SECONDS)
     }
 
-    private fun sync(unison: Unison, config: Config, tray: Tray) {
-        logger.info("Starting sync")
-        tray.startRefresh()
-        val result = try {
-            unison.run(Profile(config.profile))
-        } finally {
-            tray.stopRefresh()
-        }
-        if (result.exitCode == ExitCode.FATAL) {
-            logger.error("Error running unison: {}", result)
-            tray.error()
-        } else {
-            logger.info("Sync success: {}", result)
-            tray.idle()
-        }
+    private fun onQuit() {
+        System.exit(0)
+    }
 
-        logger.info("Sync done")
+    private fun sync(unison: Unison, config: Config, tray: Tray) {
+        if (syncInProgress.get()) return
+
+        try {
+            logger.info("Starting sync")
+            syncInProgress.set(true)
+
+            tray.startRefresh()
+            val result = try {
+                unison.run(Profile(config.profile))
+            } finally {
+                tray.stopRefresh()
+            }
+            if (result.exitCode == ExitCode.FATAL) {
+                logger.error("Error running unison: {}", result)
+                tray.error()
+            } else {
+                logger.info("Sync success: {}", result)
+                tray.idle()
+            }
+
+            logger.info("Sync done")
+        } catch (e: Exception) {
+            logger.error("Exception in sync task", e)
+            tray.error()
+        } finally {
+            syncInProgress.set(false)
+        }
     }
 }
