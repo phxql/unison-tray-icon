@@ -52,6 +52,8 @@ class TrayImpl(
     private val trayLock: Lock = ReentrantLock()
 
     override fun init(onQuit: OnQuitHandler, onSyncNow: OnSyncNowHandler) {
+        SystemTray.DEBUG = System.getProperty("debug", "false").toBoolean()
+
         systemTray = SystemTray.get() ?: throw IllegalStateException("Unable to initialize tray icon")
         systemTray.menu.add(MenuItem("Sync now", { onSyncNow() }).apply { shortcut = 'S' })
         systemTray.menu.add(Separator())
@@ -98,7 +100,8 @@ class TrayImpl(
 
     override fun close() {
         logger.debug("Shutting down...")
-        stopRefresh()
+        refreshJob?.cancel(false)
+        refreshJob = null
         systemTray.shutdown()
         logger.debug("Shut down")
     }

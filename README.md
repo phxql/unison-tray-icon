@@ -17,8 +17,12 @@ A tray icon for the unison file synchronizer.
 ```
 
 ## Troubleshooting
+
 ### I always get a red exclamation mark in the tray
 Check the log file, it's located in the `log` folder next to the application.
+
+### My tray icon doesn't show up
+Please start the application with `-Ddebug=true` and open an issue with the attached log file.
 
 ## Building
 
