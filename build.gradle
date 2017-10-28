@@ -9,6 +9,7 @@ apply plugin: 'kotlin'
 apply plugin: 'application'
 
 mainClassName = 'de.mkammerer.unisontray.MainKt'
+applicationDefaultJvmArgs = ["-Xms8m", "-Xmx100m", "-XX:+UseSerialGC"]
 
 dependencies {
     compile 'org.jetbrains.kotlin:kotlin-stdlib'
@@ -22,8 +23,17 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.2'
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.2'
 }
+
 repositories {
     mavenCentral()
+}
+
+distributions {
+    main {
+        contents {
+            from('README.md')
+        }
+    }
 }
 
 task wrapper(type: Wrapper) {
