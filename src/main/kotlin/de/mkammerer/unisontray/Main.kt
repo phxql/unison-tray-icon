@@ -38,6 +38,7 @@ object Main {
 
         logger.info("Loading config")
         val config = configManager.load()
+        logger.info("Config: {}", config)
         configManager.save(config)
 
         logger.info("Initializing tray icon")
