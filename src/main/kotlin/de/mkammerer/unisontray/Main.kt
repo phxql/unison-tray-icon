@@ -14,24 +14,21 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
+private val logger = LoggerFactory.getLogger(Main.javaClass)
+
 fun main(args: Array<String>) {
-    Main.start(args)
+    logger.info("Started")
+    try {
+        Main.run()
+    } catch (e: Exception) {
+        logger.error("Unhandled exception occurred", e)
+    }
 }
 
 object Main {
-    private val logger = LoggerFactory.getLogger(javaClass)
     private val syncInProgress = AtomicBoolean(false)
 
-    fun start(args: Array<String>) {
-        logger.info("Started")
-        try {
-            run()
-        } catch (e: Exception) {
-            logger.error("Unhandled exception occurred", e)
-        }
-    }
-
-    private fun run() {
+    fun run() {
         // We need one thread for the systray animation and another to wait for unison
         val executorService = Executors.newScheduledThreadPool(2)
 
