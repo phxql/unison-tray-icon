@@ -50,7 +50,7 @@ class TrayImpl : Tray {
             refreshJob = scheduler.scheduleAtFixedRate({
                 val image = refreshImages[nextImageNumber() - 1]
                 systemTray.setImage(image)
-            }, REFRESH_ROTATE_DELAY_MS, REFRESH_ROTATE_DELAY_MS, TimeUnit.MILLISECONDS)
+            }, 0, REFRESH_ROTATE_DELAY_MS, TimeUnit.MILLISECONDS)
         }
     }
 
@@ -66,6 +66,8 @@ class TrayImpl : Tray {
 
     override fun stopRefresh() {
         refreshJob?.cancel(false)
+        refreshJob = null
+        currentRefreshImage.set(0)
     }
 
     override fun error() {

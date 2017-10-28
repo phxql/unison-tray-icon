@@ -7,9 +7,21 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import java.nio.file.Files
 import java.nio.file.Paths
 
-data class Config(val syncInterval: Int, val profile: String) {
+/**
+ * Configuration.
+ */
+data class Config(
+        /**
+         * Sync interval in seconds.
+         */
+        val syncInterval: Int,
+        /**
+         * Name of the unison profile.
+         */
+        val profile: String
+) {
     companion object {
-        val DEFAULT = Config(5, "default")
+        val DEFAULT = Config(5 * 60, "default")
     }
 }
 
