@@ -13,6 +13,9 @@ mainClassName = 'de.mkammerer.unisontray.MainKt'
 dependencies {
     compile 'org.jetbrains.kotlin:kotlin-stdlib'
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jre8'
+
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 }
 repositories {
     mavenCentral()
