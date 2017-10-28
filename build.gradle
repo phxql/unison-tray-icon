@@ -9,7 +9,7 @@ apply plugin: 'kotlin'
 apply plugin: 'application'
 
 mainClassName = 'de.mkammerer.unisontray.MainKt'
-applicationDefaultJvmArgs = ["-Xms8m", "-Xmx100m", "-XX:+UseSerialGC"]
+applicationDefaultJvmArgs = ["-Xms8m", "-Xmx100m", "-XX:+UseSerialGC", "-XX:+HeapDumpOnOutOfMemoryError"]
 
 dependencies {
     compile 'org.jetbrains.kotlin:kotlin-stdlib'
