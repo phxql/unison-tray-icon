@@ -32,7 +32,8 @@ object Main {
     }
 
     private fun run() {
-        val executorService = Executors.newSingleThreadScheduledExecutor()
+        // We need one thread for the systray animation and another to wait for unison
+        val executorService = Executors.newScheduledThreadPool(2)
 
         val tray: Tray = TrayImpl(executorService)
         val unison: Unison = UnisonImpl()
@@ -44,7 +45,7 @@ object Main {
         configManager.save(config)
 
         logger.info("Initializing tray icon")
-        tray.init(this::onQuit, { sync(unison, config, tray) })
+        tray.init(this::onQuit, { executorService.execute({ sync(unison, config, tray) }) })
         tray.idle()
 
         logger.info("Installing shutdown hook")

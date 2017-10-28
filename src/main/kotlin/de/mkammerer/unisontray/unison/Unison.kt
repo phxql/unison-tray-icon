@@ -1,6 +1,6 @@
 package de.mkammerer.unisontray.unison
 
-import de.mkammerer.unisontray.util.startAndReadProcess
+import de.mkammerer.unisontray.util.ProcessUtil
 import org.slf4j.LoggerFactory
 
 data class Profile(val name: String)
@@ -26,7 +26,7 @@ class UnisonImpl : Unison {
         logger.info("Starting unison with profile {}", profile)
 
         val builder = ProcessBuilder("unison", profile.name)
-        val result = startAndReadProcess(builder)
+        val result = ProcessUtil.startAndReadProcess(builder)
 
         return Result(result.output, ExitCode.fromProcess(result.exitCode))
     }

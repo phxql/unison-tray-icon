@@ -3,6 +3,7 @@ package de.mkammerer.unisontray.tray
 import dorkbox.systemTray.MenuItem
 import dorkbox.systemTray.Separator
 import dorkbox.systemTray.SystemTray
+import org.slf4j.LoggerFactory
 import java.awt.Image
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
@@ -33,6 +34,8 @@ interface Tray {
 class TrayImpl(
         private val scheduler: ScheduledExecutorService
 ) : Tray {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     private lateinit var systemTray: SystemTray
 
     private var refreshJob: ScheduledFuture<*>? = null
@@ -53,34 +56,42 @@ class TrayImpl(
     }
 
     override fun idle() {
+        logger.debug("Show idle icon")
         setTrayImage(idleImage)
         setTrayTooltip("Unison - idle")
     }
 
     override fun startRefresh() {
         if (refreshJob == null) {
+            logger.debug("Starting refresh animation")
             setTrayTooltip("Unison - syncing")
             refreshJob = scheduler.scheduleAtFixedRate({
-                val image = refreshImages[nextImageNumber() - 1]
+                val imageNumber = nextImageNumber()
+                logger.trace("Showing refresh image {}", imageNumber)
+                val image = refreshImages[imageNumber - 1]
                 setTrayImage(image)
             }, 0, REFRESH_ROTATE_DELAY_MS, TimeUnit.MILLISECONDS)
         }
     }
 
     override fun stopRefresh() {
+        logger.debug("Stopping refresh animation")
         refreshJob?.cancel(false)
         refreshJob = null
         currentRefreshImage.set(0)
     }
 
     override fun error() {
+        logger.debug("Show error icon")
         setTrayTooltip("Unison - error")
         setTrayImage(errorImage)
     }
 
     override fun close() {
+        logger.debug("Shutting down...")
         stopRefresh()
         systemTray.shutdown()
+        logger.debug("Shut down")
     }
 
     private fun loadImage(resource: String): Image = javaClass.getResourceAsStream(resource).use { ImageIO.read(it) }
