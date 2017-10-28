@@ -1,5 +1,7 @@
 package de.mkammerer.unisontray
 
+import de.mkammerer.unisontray.config.ConfigManager
+import de.mkammerer.unisontray.config.ConfigManagerImpl
 import de.mkammerer.unisontray.tray.Tray
 import de.mkammerer.unisontray.tray.TrayImpl
 import de.mkammerer.unisontray.unison.Profile
@@ -26,11 +28,15 @@ object Main {
     private fun run() {
         val tray: Tray = TrayImpl()
         val unison: Unison = UnisonImpl()
+        val configManager: ConfigManager = ConfigManagerImpl()
+
+        val config = configManager.load()
+        configManager.save(config)
 
         tray.init()
         tray.startRefresh()
 
-        val result = unison.run(Profile("moe"))
+        val result = unison.run(Profile(config.profile))
         logger.debug("{}", result)
 
         Runtime.getRuntime().addShutdownHook(object : Thread("tray-shutdown") {

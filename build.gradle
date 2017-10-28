@@ -19,6 +19,8 @@ dependencies {
     compile (group: 'com.dorkbox', name: 'SystemTray', version: '3.11') {
         exclude group: 'ch.qos.logback'
     }
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.2'
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.2'
 }
 repositories {
     mavenCentral()
