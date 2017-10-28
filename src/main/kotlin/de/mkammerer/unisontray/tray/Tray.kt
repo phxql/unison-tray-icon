@@ -26,6 +26,8 @@ interface Tray {
 
     fun stopRefresh()
 
+    fun warning()
+
     fun error()
 
     fun close()
@@ -43,6 +45,7 @@ class TrayImpl(
 
     private val idleImage = loadImage(IDLE_IMAGE)
     private val errorImage = loadImage(ERROR_IMAGE)
+    private val warningImage = loadImage(WARNING_IMAGE)
     private val refreshImages = Array(REFRESH_IMAGE_MAX - REFRESH_IMAGE_MIN + 1, { num ->
         loadImage(String.format(REFRESH_IMAGES, num + REFRESH_IMAGE_MIN))
     })
@@ -79,6 +82,12 @@ class TrayImpl(
         refreshJob?.cancel(false)
         refreshJob = null
         currentRefreshImage.set(0)
+    }
+
+    override fun warning() {
+        logger.debug("Show warning icon")
+        setTrayTooltip("Unison - warning")
+        setTrayImage(warningImage)
     }
 
     override fun error() {
@@ -121,6 +130,7 @@ class TrayImpl(
     companion object {
         const val IDLE_IMAGE = "/image/idle.png"
         const val ERROR_IMAGE = "/image/error.png"
+        const val WARNING_IMAGE = "/image/warning.png"
         const val REFRESH_IMAGES = "/image/refresh_%d.png"
         const val REFRESH_IMAGE_MIN = 1
         const val REFRESH_IMAGE_MAX = 4

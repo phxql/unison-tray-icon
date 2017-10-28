@@ -79,12 +79,20 @@ object Main {
             } finally {
                 tray.stopRefresh()
             }
-            if (result.exitCode == ExitCode.FATAL) {
-                logger.error("Error running unison: {}", result)
-                tray.error()
-            } else {
-                logger.info("Sync success: {}", result)
-                tray.idle()
+
+            when (result.exitCode) {
+                ExitCode.FATAL -> {
+                    logger.error("Sync error: {}", result)
+                    tray.error()
+                }
+                ExitCode.SUCCESSFUL -> {
+                    logger.info("Sync success: {}", result)
+                    tray.idle()
+                }
+                else -> {
+                    logger.warn("Sync warning: {}", result)
+                    tray.warning()
+                }
             }
 
             logger.info("Sync done")
